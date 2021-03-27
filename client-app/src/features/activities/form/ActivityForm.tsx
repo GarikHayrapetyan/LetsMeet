@@ -30,7 +30,7 @@ export default observer(function ActivityForm() {
         }else{
             setInitialLoading(false);
         }
-    },[id,loadActivity])
+    },[id,loadActivity,setInitialLoading])
 
      
     function handleInputChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
