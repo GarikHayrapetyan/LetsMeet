@@ -1,17 +1,20 @@
 import { observer } from 'mobx-react-lite';
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
+import { useHistory, useParams } from 'react-router';
 import { Button, Form, Segment } from 'semantic-ui-react';
+import LoadingComponent from '../../../app/layout/LoadingComponent';
 import { useStore } from '../../../app/stores/store';
-
+import {v4 as uuid} from 'uuid';
+import { Link } from 'react-router-dom';
 
 
 export default observer(function ActivityForm() {
-
+    const history = useHistory();
     const {activityStore} = useStore();
-    const {selectedActivity,closeForm,createActivity,loading,updateActivity} = activityStore;
-
-    const initialState = selectedActivity ??
-    {
+    const {createActivity,loading,updateActivity,
+        loadActivity,loadingInitial,setInitialLoading} = activityStore;
+    const {id} = useParams<{id:string}>();
+    const [activity, setActivity] = useState({
         id: '',
         title: '',
         description: '',
@@ -19,18 +22,33 @@ export default observer(function ActivityForm() {
         date: '',
         city: '',
         venue: ''
-    }
+    });
 
+    useEffect(()=>{
+        if (id) {
+            loadActivity(id).then(activity=>setActivity(activity!))
+        }else{
+            setInitialLoading(false);
+        }
+    },[id,loadActivity])
 
-    const [activity, setActivity] = useState(initialState);
-    
+     
     function handleInputChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
         const { name, value } = event.target;
         setActivity({ ...activity, [name]: value })
     }
 
     function handleOnSubmit() {
-        activity.id ? updateActivity(activity):createActivity(activity) ;
+       if (activity.id.length === 0) {
+           let newActivity = {...activity,id:uuid()};
+           createActivity(newActivity).then(()=>history.push(`/activities/${newActivity.id}`));
+       }else{
+           updateActivity(activity).then(()=>history.push(`/activities/${activity.id}`));
+       }
+    }
+
+    if (loadingInitial) {
+        return <LoadingComponent content="Loading activity..."/>
     }
 
     return (
@@ -49,8 +67,15 @@ export default observer(function ActivityForm() {
                     content='Submit' 
                     type='submit' 
                     floated='right' />
-                <Button onClick={closeForm} basic content='Cancel' type='button' floated='right' />
+                <Button  
+                    as={Link} to='/activities'
+                    basic 
+                    content='Cancel' 
+                    type='button' 
+                    floated='right' />
             </Form>
         </Segment>
     )
 })
+
+
