@@ -1,5 +1,4 @@
 import { makeAutoObservable, runInAction } from "mobx"
-import { arrayExtensions } from "mobx/dist/internal";
 import agent from "../api/agent";
 import { Activity } from "../models/Activity";
 
